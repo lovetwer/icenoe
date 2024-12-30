@@ -1,0 +1,102 @@
+:root {
+  /* Light theme colors */
+  --primary: #42b883;
+  --primary-rgb: 66, 184, 131;
+  --primary-hover: #3aa876;
+  --primary-light: rgba(66, 184, 131, 0.1);
+  --primary-shadow: rgba(66, 184, 131, 0.2);
+  
+  --background: #f8f9fa;
+  --background-rgb: 248, 249, 250;
+  --card-bg: #ffffff;
+  --card-bg-rgb: 255, 255, 255;
+  --card-hover: #f8f9fa;
+  
+  --text: #2c3e50;
+  --text-rgb: 44, 62, 80;
+  --text-secondary: #666666;
+  --border: #e9ecef;
+  --border-rgb: 233, 236, 239;
+  
+  --code-bg: #f8f9fa;
+  --code-text: #2c3e50;
+
+  /* Layout variables */
+  --nav-height: 60px;
+}
+
+:root.dark {
+  /* Dark theme colors */
+  --primary: #42b883;
+  --primary-rgb: 66, 184, 131;
+  --primary-hover: #3aa876;
+  --primary-light: rgba(66, 184, 131, 0.1);
+  --primary-shadow: rgba(66, 184, 131, 0.2);
+  
+  --background: #1a1a1a;
+  --background-rgb: 26, 26, 26;
+  --card-bg: #242424;
+  --card-bg-rgb: 36, 36, 36;
+  --card-hover: #2a2a2a;
+  
+  --text: #e9ecef;
+  --text-rgb: 233, 236, 239;
+  --text-secondary: #a0a0a0;
+  --border: #333333;
+  --border-rgb: 51, 51, 51;
+  
+  --code-bg: #2a2a2a;
+  --code-text: #e9ecef;
+}
+
+/* 全局样式 */
+body {
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* 卡片样式 */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮样式 */
+.btn {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* 输入框样式 */
+.input {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.input:focus {
+  border-color: var(--primary);
+}
+
+/* 文本样式 */
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+/* 导航栏样式 */
+.navbar {
+  background-color: rgba(var(--background-rgb), 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 主题切换过渡效果 */
+* {
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
+} 

@@ -1,0 +1,28 @@
+<template>
+  <div class="layout-container">
+    <nav-bar />
+    <main class="main-content">
+      <router-view />
+    </main>
+  </div>
+</template>
+
+<script setup>
+import NavBar from '@/components/Navbar.vue'
+</script>
+
+<style scoped>
+.layout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+</style> 
