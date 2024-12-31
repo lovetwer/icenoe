@@ -1,58 +1,55 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-
-const routes = [
-  {
-    path: '/',
-    name: 'Layout',
-    component: () => import('@/layouts/DefaultLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'Home',
-        component: () => import('@/views/Home.vue')
-      },
-      {
-        path: 'animations',
-        name: 'Animations',
-        component: () => import('@/views/Animations.vue')
-      },
-      {
-        path: 'upload',
-        name: 'Upload',
-        component: () => import('@/views/Upload.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: () => import('@/views/Profile.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'editor',
-        name: 'Editor',
-        component: () => import('@/views/Editor.vue')
-      }
-    ]
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('@/views/Login.vue')
-  }
-]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
-  linkExactActiveClass: 'router-link-exact-active',
-  linkActiveClass: 'router-link-active'
+  routes: [
+    {
+      path: '/',
+      component: () => import('@/layouts/DefaultLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'Home',
+          component: () => import('@/views/Home.vue')
+        },
+        {
+          path: 'animations',
+          name: 'Animations',
+          component: () => import('@/views/Animations.vue')
+        },
+        {
+          path: 'editor/:id?',
+          name: 'Editor',
+          component: () => import('@/views/Editor.vue')
+        },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('@/views/Profile.vue'),
+          meta: { requiresAuth: true }
+        }
+      ]
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('@/views/Login.vue')
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      component: () => import('@/views/Register.vue')
+    }
+  ]
 })
 
+// 路由守卫
 router.beforeEach((to, from, next) => {
-  const userStore = useUserStore()
-  if (to.meta.requiresAuth && !userStore.token) {
+  const token = localStorage.getItem('token')
+  const publicPages = ['/login', '/register']
+  const authRequired = !publicPages.includes(to.path)
+
+  if (authRequired && !token) {
     next('/login')
   } else {
     next()

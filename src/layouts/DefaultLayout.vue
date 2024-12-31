@@ -1,18 +1,18 @@
 <template>
-  <div class="layout-container">
-    <nav-bar />
+  <div class="layout">
+    <Navbar />
     <main class="main-content">
-      <router-view />
+      <router-view></router-view>
     </main>
   </div>
 </template>
 
 <script setup>
-import NavBar from '@/components/Navbar.vue'
+import Navbar from '@/components/Navbar.vue'
 </script>
 
 <style scoped>
-.layout-container {
+.layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -20,9 +20,6 @@ import NavBar from '@/components/Navbar.vue'
 
 .main-content {
   flex: 1;
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  padding-top: var(--navbar-height, 60px);
 }
 </style> 

@@ -28,11 +28,16 @@
           class="nav-link"
           :class="{ active: $route.path.startsWith('/animations') }"
         >
-          <i class="icon-gallery"></i>
+          <i class="icon-gallery">🎨</i>
           <span>动画库</span>
         </router-link>
-        <router-link to="/editor" class="nav-link">
-          编辑器
+        <router-link 
+          to="/editor" 
+          class="nav-link"
+          :class="{ active: $route.path.startsWith('/editor') }"
+        >
+          <i class="icon-editor">✨</i>
+          <span>编辑器</span>
         </router-link>
       </div>
 
@@ -49,18 +54,76 @@
             </svg>
           </div>
         </button>
+
+        <template v-if="userStore.isLoggedIn">
+          <div class="user-menu" @click="showDropdown = !showDropdown" v-click-outside="closeDropdown">
+            <div class="user-avatar">
+              <span class="avatar-text">{{ userStore.user.username.charAt(0).toUpperCase() }}</span>
+            </div>
+            <span class="username">{{ userStore.user.username }}</span>
+            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            
+            <div class="dropdown-menu" v-show="showDropdown">
+              <router-link to="/profile" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="7" r="4" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                个人资料
+              </router-link>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" @click="handleLogout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16 17l5-5-5-5" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M21 12H9" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                退出登录
+              </button>
+            </div>
+          </div>
+        </template>
+        
+        <template v-else>
+          <router-link to="/login" class="login-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke-width="2" stroke-linecap="round"/>
+              <path d="M10 17l5-5-5-5" stroke-width="2" stroke-linecap="round"/>
+              <path d="M15 12H3" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            登录
+          </router-link>
+        </template>
       </div>
     </div>
   </nav>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
+import { useUserStore } from '@/stores/user'
+import { vClickOutside } from '@/directives/click-outside'
 
+const router = useRouter()
 const themeStore = useThemeStore()
+const userStore = useUserStore()
+const showDropdown = ref(false)
 
 const toggleTheme = () => {
   themeStore.toggleTheme()
+}
+
+const closeDropdown = () => {
+  showDropdown.value = false
+}
+
+const handleLogout = async () => {
+  await userStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -291,13 +354,136 @@ const toggleTheme = () => {
   height: 20px;
   display: inline-block;
   vertical-align: middle;
+  font-style: normal;
+  font-size: 16px;
 }
 
 .icon-home::before {
   content: '🏠';
 }
 
-.icon-gallery::before {
-  content: '🎨';
+.icon-gallery,
+.icon-editor {
+  font-size: 16px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.user-menu:hover {
+  background: var(--card-hover);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.username {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.user-menu:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  z-index: 100;
+  animation: dropdown-show 0.2s ease-out;
+}
+
+@keyframes dropdown-show {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  text-decoration: none;
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: var(--card-hover);
+  color: var(--primary);
+}
+
+.dropdown-item:hover svg {
+  stroke: var(--primary);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
+}
+
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.login-btn:hover {
+  background: var(--primary-hover);
+}
+
+.login-btn svg {
+  stroke: white;
 }
 </style>  

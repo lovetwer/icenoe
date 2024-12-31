@@ -44,12 +44,21 @@
       <div class="preview-panel">
         <div class="preview-header">
           <h3>预览效果</h3>
-          <button class="run-btn" @click="updatePreview">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            运行
-          </button>
+          <div class="preview-actions">
+            <button class="run-btn" @click="updatePreview">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              运行
+            </button>
+            <button class="save-btn" @click="showSaveDialog = true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17 21v-8H7v8M7 3v5h8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              保存
+            </button>
+          </div>
         </div>
         <div class="preview-container">
           <iframe
@@ -61,14 +70,26 @@
         </div>
       </div>
     </div>
+
+    <!-- 保存弹窗 -->
+    <save-animation-dialog
+      v-model="showSaveDialog"
+      :html-code="htmlCode"
+      :css-code="cssCode"
+      :js-code="jsCode"
+      @save="handleSave"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import SaveAnimationDialog from '@/components/SaveAnimationDialog.vue'
+import { addAnime } from '@/api/anime'
 
 const route = useRoute()
+const router = useRouter()
 const currentTab = ref('html')
 const previewFrame = ref(null)
 
@@ -81,6 +102,8 @@ const tabs = [
   { id: 'css', name: 'CSS' },
   { id: 'js', name: 'JavaScript' }
 ]
+
+const showSaveDialog = ref(false)
 
 const updatePreview = () => {
   if (!previewFrame.value) return
@@ -160,10 +183,26 @@ const loadAnimation = async (id) => {
   }
 }
 
+// 处理保存
+const handleSave = async (data) => {
+  try {
+    await addAnime(data)
+    router.push('/animations')
+  } catch (error) {
+    console.error('保存动画失败:', error)
+    alert('保存失败，请重试')
+  }
+}
+
 onMounted(() => {
-  const animationId = route.query.id
-  if (animationId) {
-    loadAnimation(animationId)
+  const { htmlCode: code1, cssCode: code2, jsCode: code3 } = route.query
+  
+  if (code1 || code2 || code3) {
+    // 使用查询参数中的代码
+    htmlCode.value = decodeURIComponent(code1 || '')
+    cssCode.value = decodeURIComponent(code2 || '')
+    jsCode.value = decodeURIComponent(code3 || '')
+    updatePreview()
   } else {
     // 设置默认动画
     htmlCode.value = '<div class="pulse-circle"></div>'
@@ -326,28 +365,48 @@ onMounted(() => {
   margin: 0;
 }
 
-.run-btn {
+.preview-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.run-btn,
+.save-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--primary);
   border-radius: 6px;
-  background: var(--primary);
-  color: white;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
+.run-btn {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: white;
+}
+
 .run-btn:hover {
   background: var(--primary-hover);
 }
 
-.run-btn svg {
-  width: 14px;
-  height: 14px;
+.save-btn {
+  background: var(--card-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.save-btn:hover {
+  background: var(--background);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.save-btn:hover svg {
+  stroke: var(--primary);
 }
 
 .preview-container {

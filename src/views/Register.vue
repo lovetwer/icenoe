@@ -1,5 +1,5 @@
 <template>
-  <div class="login-page">
+  <div class="register-page">
     <!-- 背景动画 -->
     <div class="animated-bg">
       <div class="gradient-circle"></div>
@@ -8,31 +8,28 @@
       </div>
     </div>
 
-    <div class="login-container">
+    <div class="register-container">
       <!-- 装饰动画 -->
       <div class="decoration">
-        <div class="ice-crystal">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
+        <div class="animation-grid">
+          <div class="grid-item" v-for="n in 9" :key="n">
+            <div class="item-content"></div>
+          </div>
         </div>
-        <div class="pulse-rings">
-          <div class="ring"></div>
-          <div class="ring"></div>
-          <div class="ring"></div>
+        <div class="floating-dots">
+          <div class="dot" v-for="n in 12" :key="n"></div>
         </div>
       </div>
 
-      <!-- 登录表单 -->
+      <!-- 注册表单 -->
       <div class="form-container">
         <h2 class="title">
-          <span class="welcome">欢迎回来</span>
+          <span class="welcome">创建账号</span>
           <span class="brand">Icenoe</span>
         </h2>
-        <p class="subtitle">登录以继续使用创作之旅</p>
+        <p class="subtitle">加入我们，开始你的动画创作之旅</p>
 
-        <form @submit.prevent="handleSubmit" class="login-form">
+        <form @submit.prevent="handleSubmit" class="register-form">
           <div class="form-group" :class="{ 'focused': focused === 'username' }">
             <label>用户名</label>
             <div class="input-wrapper">
@@ -87,17 +84,39 @@
             <span class="error-text" v-if="errors.password">{{ errors.password }}</span>
           </div>
 
-          <div class="form-footer">
-            <label class="remember-me">
-              <input type="checkbox" v-model="form.remember">
-              <span class="checkbox-custom"></span>
-              <span>记住我</span>
-            </label>
-            <a href="#" class="forgot-password">忘记密码？</a>
+          <div class="form-group" :class="{ 'focused': focused === 'confirmPassword' }">
+            <label>确认密码</label>
+            <div class="input-wrapper">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-width="2"/>
+              </svg>
+              <input 
+                :type="showPassword ? 'text' : 'password'" 
+                v-model="form.confirmPassword"
+                placeholder="再次输入密码"
+                :class="{ error: errors.confirmPassword }"
+                @focus="focused = 'confirmPassword'"
+                @blur="focused = null"
+              >
+              <div class="input-border"></div>
+            </div>
+            <span class="error-text" v-if="errors.confirmPassword">{{ errors.confirmPassword }}</span>
           </div>
 
-          <button type="submit" class="submit-btn" :disabled="loading">
-            <span class="btn-text">{{ loading ? '登录中...' : '登录' }}</span>
+          <div class="form-agreement">
+            <label class="checkbox">
+              <input type="checkbox" v-model="form.agreement">
+              <span class="checkbox-custom"></span>
+              <span>我已阅读并同意</span>
+            </label>
+            <a href="#" class="agreement-link">服务条款</a>
+            <span>和</span>
+            <a href="#" class="agreement-link">隐私政策</a>
+          </div>
+
+          <button type="submit" class="submit-btn" :disabled="loading || !form.agreement">
+            <span class="btn-text">{{ loading ? '注册中...' : '注册' }}</span>
             <div class="btn-animation">
               <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -106,9 +125,9 @@
           </button>
         </form>
 
-        <div class="register-link">
-          还没有账号？
-          <router-link to="/register" class="link">立即注册</router-link>
+        <div class="login-link">
+          已有账号？
+          <router-link to="/login" class="link">立即登录</router-link>
         </div>
       </div>
     </div>
@@ -126,12 +145,14 @@ const userStore = useUserStore()
 const form = reactive({
   username: '',
   password: '',
-  remember: false
+  confirmPassword: '',
+  agreement: false
 })
 
 const errors = reactive({
   username: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
 const loading = ref(false)
@@ -142,9 +163,13 @@ const validateForm = () => {
   let isValid = true
   errors.username = ''
   errors.password = ''
+  errors.confirmPassword = ''
 
   if (!form.username) {
     errors.username = '请输入用户名'
+    isValid = false
+  } else if (form.username.length < 3) {
+    errors.username = '用户名至少3个字符'
     isValid = false
   }
 
@@ -156,20 +181,29 @@ const validateForm = () => {
     isValid = false
   }
 
+  if (!form.confirmPassword) {
+    errors.confirmPassword = '请确认密码'
+    isValid = false
+  } else if (form.confirmPassword !== form.password) {
+    errors.confirmPassword = '两次输入的密码不一致'
+    isValid = false
+  }
+
   return isValid
 }
 
 const handleSubmit = async () => {
   if (!validateForm()) return
+  if (!form.agreement) return
 
   loading.value = true
   try {
-    const success = await userStore.loginAction(form)
+    const success = await userStore.registerAction(form)
     if (success) {
-      router.push('/')
+      router.push('/login')
     }
   } catch (error) {
-    errors.password = '登录失败，请重试'
+    errors.username = '注册失败，请重试'
   } finally {
     loading.value = false
   }
@@ -177,7 +211,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.login-page {
+.register-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -188,115 +222,7 @@ const handleSubmit = async () => {
   overflow: hidden;
 }
 
-.animated-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.gradient-circle {
-  position: absolute;
-  width: 150vmax;
-  height: 150vmax;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(
-    circle,
-    var(--primary-light) 0%,
-    transparent 70%
-  );
-  opacity: 0.15;
-  animation: pulse 8s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-  }
-}
-
-.floating-shapes {
-  position: absolute;
-  inset: 0;
-  filter: blur(2px);
-}
-
-.shape {
-  position: absolute;
-  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-  opacity: 0.1;
-  animation: float 10s linear infinite;
-}
-
-.shape:nth-child(1) {
-  width: 100px;
-  height: 100px;
-  top: 20%;
-  left: 20%;
-  animation-duration: 15s;
-}
-
-.shape:nth-child(2) {
-  width: 150px;
-  height: 150px;
-  top: 60%;
-  left: 70%;
-  animation-duration: 25s;
-  animation-delay: -2s;
-}
-
-.shape:nth-child(3) {
-  width: 80px;
-  height: 80px;
-  top: 30%;
-  left: 80%;
-  animation-duration: 20s;
-  animation-delay: -5s;
-}
-
-.shape:nth-child(4) {
-  width: 120px;
-  height: 120px;
-  top: 70%;
-  left: 30%;
-  animation-duration: 18s;
-  animation-delay: -8s;
-}
-
-.shape:nth-child(5) {
-  width: 90px;
-  height: 90px;
-  top: 40%;
-  left: 40%;
-  animation-duration: 22s;
-  animation-delay: -3s;
-}
-
-.shape:nth-child(6) {
-  width: 130px;
-  height: 130px;
-  top: 80%;
-  left: 60%;
-  animation-duration: 28s;
-  animation-delay: -7s;
-}
-
-@keyframes float {
-  0% {
-    transform: rotate(0deg) translate(0, 0) rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg) translate(100px, 100px) rotate(-360deg);
-  }
-}
-
-.login-container {
+.register-container {
   width: 100%;
   max-width: 420px;
   background: var(--card-bg);
@@ -316,100 +242,88 @@ const handleSubmit = async () => {
   overflow: hidden;
 }
 
-.ice-crystal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 80px;
-  height: 80px;
+.animation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
-.ice-crystal span {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
-  border-radius: 4px;
-  animation: crystal 3s ease-in-out infinite;
+.grid-item {
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.ice-crystal span:nth-child(1) {
-  top: 0;
-  left: 20px;
-  animation-delay: 0s;
-}
-
-.ice-crystal span:nth-child(2) {
-  top: 20px;
-  right: 0;
-  animation-delay: 0.5s;
-}
-
-.ice-crystal span:nth-child(3) {
-  bottom: 0;
-  left: 20px;
-  animation-delay: 1s;
-}
-
-.ice-crystal span:nth-child(4) {
-  top: 20px;
-  left: 0;
-  animation-delay: 1.5s;
-}
-
-@keyframes crystal {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.2;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.4;
-  }
-}
-
-.pulse-rings {
+.item-content {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+  transform-origin: center;
+  animation: rotate 8s linear infinite;
 }
 
-.ring {
+.grid-item:nth-child(2n) .item-content {
+  animation-direction: reverse;
+  animation-duration: 12s;
+}
+
+.grid-item:nth-child(3n) .item-content {
+  animation-duration: 10s;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.floating-dots {
   position: absolute;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  inset: 0;
+  overflow: hidden;
+}
+
+.dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 50%;
-  animation: ringPulse 3s ease-out infinite;
+  animation: float-up 4s ease-in-out infinite;
 }
 
-.ring:nth-child(1) {
-  width: 100px;
-  height: 100px;
-  animation-delay: 0s;
-}
+.dot:nth-child(1) { left: 10%; animation-delay: 0s; }
+.dot:nth-child(2) { left: 20%; animation-delay: 0.5s; }
+.dot:nth-child(3) { left: 30%; animation-delay: 1s; }
+.dot:nth-child(4) { left: 40%; animation-delay: 1.5s; }
+.dot:nth-child(5) { left: 50%; animation-delay: 2s; }
+.dot:nth-child(6) { left: 60%; animation-delay: 2.5s; }
+.dot:nth-child(7) { left: 70%; animation-delay: 3s; }
+.dot:nth-child(8) { left: 80%; animation-delay: 3.5s; }
+.dot:nth-child(9) { left: 90%; animation-delay: 4s; }
+.dot:nth-child(10) { left: 25%; animation-delay: 4.5s; }
+.dot:nth-child(11) { left: 45%; animation-delay: 5s; }
+.dot:nth-child(12) { left: 65%; animation-delay: 5.5s; }
 
-.ring:nth-child(2) {
-  width: 140px;
-  height: 140px;
-  animation-delay: 0.5s;
-}
-
-.ring:nth-child(3) {
-  width: 180px;
-  height: 180px;
-  animation-delay: 1s;
-}
-
-@keyframes ringPulse {
+@keyframes float-up {
   0% {
-    transform: scale(0.8);
+    transform: translateY(160px) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(80px) scale(1);
     opacity: 0.5;
   }
   100% {
-    transform: scale(1.5);
+    transform: translateY(0) scale(0);
     opacity: 0;
   }
 }
@@ -480,6 +394,7 @@ label {
 }
 
 input[type="text"],
+input[type="email"],
 input[type="password"] {
   width: 100%;
   padding: 0.875rem 1rem 0.875rem 3rem;
@@ -537,24 +452,24 @@ input.error:focus {
   color: var(--text);
 }
 
-.form-footer {
+.form-agreement {
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
-.remember-me {
+.checkbox {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
   user-select: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
 }
 
-.remember-me input {
+.checkbox input {
   display: none;
 }
 
@@ -581,24 +496,23 @@ input.error:focus {
   transition: all 0.2s;
 }
 
-.remember-me input:checked + .checkbox-custom {
+.checkbox input:checked + .checkbox-custom {
   background: var(--primary);
   border-color: var(--primary);
 }
 
-.remember-me input:checked + .checkbox-custom::after {
+.checkbox input:checked + .checkbox-custom::after {
   transform: rotate(45deg) scale(1);
   opacity: 1;
 }
 
-.forgot-password {
+.agreement-link {
   color: var(--primary);
   text-decoration: none;
-  font-size: 0.9rem;
   transition: opacity 0.2s;
 }
 
-.forgot-password:hover {
+.agreement-link:hover {
   opacity: 0.8;
 }
 
@@ -663,14 +577,14 @@ input.error:focus {
   transform: translateX(0);
 }
 
-.register-link {
+.login-link {
   margin-top: 1.5rem;
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
-.register-link .link {
+.login-link .link {
   color: var(--primary);
   text-decoration: none;
   font-weight: 500;
@@ -678,7 +592,7 @@ input.error:focus {
   position: relative;
 }
 
-.register-link .link::after {
+.login-link .link::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -691,8 +605,116 @@ input.error:focus {
   transition: transform 0.3s;
 }
 
-.register-link .link:hover::after {
+.login-link .link:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+.animated-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.gradient-circle {
+  position: absolute;
+  width: 150vmax;
+  height: 150vmax;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    var(--primary-light) 0%,
+    transparent 70%
+  );
+  opacity: 0.15;
+  animation: pulse 8s ease-in-out infinite;
+}
+
+.floating-shapes {
+  position: absolute;
+  inset: 0;
+  filter: blur(2px);
+}
+
+.shape {
+  position: absolute;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  opacity: 0.1;
+  animation: float 10s linear infinite;
+}
+
+.shape:nth-child(1) {
+  width: 100px;
+  height: 100px;
+  top: 20%;
+  left: 20%;
+  animation-duration: 15s;
+}
+
+.shape:nth-child(2) {
+  width: 150px;
+  height: 150px;
+  top: 60%;
+  left: 70%;
+  animation-duration: 25s;
+  animation-delay: -2s;
+}
+
+.shape:nth-child(3) {
+  width: 80px;
+  height: 80px;
+  top: 30%;
+  left: 80%;
+  animation-duration: 20s;
+  animation-delay: -5s;
+}
+
+.shape:nth-child(4) {
+  width: 120px;
+  height: 120px;
+  top: 70%;
+  left: 30%;
+  animation-duration: 18s;
+  animation-delay: -8s;
+}
+
+.shape:nth-child(5) {
+  width: 90px;
+  height: 90px;
+  top: 40%;
+  left: 40%;
+  animation-duration: 22s;
+  animation-delay: -3s;
+}
+
+.shape:nth-child(6) {
+  width: 130px;
+  height: 130px;
+  top: 80%;
+  left: 60%;
+  animation-duration: 28s;
+  animation-delay: -7s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: rotate(0deg) translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translate(100px, 100px) rotate(-360deg);
+  }
 }
 </style> 
