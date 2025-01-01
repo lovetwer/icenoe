@@ -58,9 +58,9 @@
         <template v-if="userStore.isLoggedIn">
           <div class="user-menu" @click="showDropdown = !showDropdown" v-click-outside="closeDropdown">
             <div class="user-avatar">
-              <span class="avatar-text">{{ userStore.user.username.charAt(0).toUpperCase() }}</span>
+              <span class="avatar-text">{{ userStore.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
             </div>
-            <span class="username">{{ userStore.user.username }}</span>
+            <span class="username">{{ userStore.username || '用户' }}</span>
             <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -112,7 +112,6 @@ const router = useRouter()
 const themeStore = useThemeStore()
 const userStore = useUserStore()
 const showDropdown = ref(false)
-
 const toggleTheme = () => {
   themeStore.toggleTheme()
 }
@@ -122,7 +121,7 @@ const closeDropdown = () => {
 }
 
 const handleLogout = async () => {
-  await userStore.logout()
+  await userStore.logoutAction()
   router.push('/login')
 }
 </script>

@@ -1,27 +1,38 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { login, register, logout, getUserInfo } from '@/api/user'
 import { ElMessage } from 'element-plus'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
+  const user = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
 
+  // 计算属性
+  const isLoggedIn = computed(() => !!token.value)
+  const username = computed(() => user.value.username || '')
   // 登录
   async function loginAction(loginForm) {
     try {
       const res = await login(loginForm)
       if (res.data) {
+        // 保存token和用户信息
         token.value = res.data.token
-        userInfo.value = res.data
+        user.value = {
+          username: loginForm.username,
+          ...res.data
+        }
+        
+        // 保存到本地存储
         localStorage.setItem('token', res.data.token)
-        localStorage.setItem('userInfo', JSON.stringify(res.data))
+        localStorage.setItem('userInfo', JSON.stringify(user.value))
+        
         ElMessage.success('登录成功')
         return true
       }
       return false
     } catch (error) {
       console.error('登录失败:', error)
+      ElMessage.error(error.response?.data?.message || '登录失败，请重试')
       return false
     }
   }
@@ -29,10 +40,7 @@ export const useUserStore = defineStore('user', () => {
   // 注册
   async function registerAction(registerForm) {
     try {
-      const res = await register({
-        username: registerForm.username,
-        password: registerForm.password
-      })
+      const res = await register(registerForm)
       if (res.data) {
         ElMessage.success('注册成功')
         return true
@@ -48,12 +56,12 @@ export const useUserStore = defineStore('user', () => {
   // 登出
   async function logoutAction() {
     try {
-      if (userInfo.value.username) {
-        await logout(userInfo.value.username)
+      if (user.value.username) {
+        await logout(user.value.username)
       }
       // 无论接口是否成功，都清除本地存储
       token.value = ''
-      userInfo.value = {}
+      user.value = {}
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
       ElMessage.success('已退出登录')
@@ -69,8 +77,12 @@ export const useUserStore = defineStore('user', () => {
     try {
       const res = await getUserInfo()
       if (res.data) {
-        userInfo.value = res.data
-        localStorage.setItem('userInfo', JSON.stringify(res.data))
+        // 更新用户信息，保留原有信息
+        user.value = {
+          ...user.value,
+          ...res.data
+        }
+        localStorage.setItem('userInfo', JSON.stringify(user.value))
         return true
       }
       return false
@@ -82,7 +94,9 @@ export const useUserStore = defineStore('user', () => {
 
   return {
     token,
-    userInfo,
+    user,
+    isLoggedIn,
+    username,
     loginAction,
     registerAction,
     logoutAction,
