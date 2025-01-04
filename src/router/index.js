@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Contact from '@/views/Contact.vue'
-import About from '@/views/About.vue'
-
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -33,7 +30,7 @@ const router = createRouter({
         {
           path: 'about',
           name: 'About',
-          component: About,
+          component: () => import('@/views/About.vue'),
           meta: {
             title: '关于我们'
           }
@@ -61,7 +58,7 @@ const router = createRouter({
     {
       path: '/contact',
       name: 'Contact',
-      component: Contact,
+      component: () => import('@/views/Contact.vue'),
       meta: {
         title: '联系我们'
       }
